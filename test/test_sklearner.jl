@@ -19,6 +19,13 @@ const XC = IRIS[:,1:4] |> DataFrame
 const YC = IRIS[:,5] |> Vector
 const Y = IRIS[:,4] |> Vector
 
+#const profb = getprofb()
+#const X = profb[:,[2,3,4]] |> DataFrame
+#const XC = profb[:,[2,3,4,7]] |> DataFrame
+#const YC = profb[:,1] |> Vector
+#const Y = profb[:,7] |> Vector
+
+
 
 const classifiers = [
     "LinearSVC","QDA","MLPClassifier","BernoulliNB",
@@ -59,7 +66,7 @@ const regressors = [
     	
 
 function fit_test(learner::String,in::DataFrame,out::Vector)
-    _learner=SKLearner(Dict(:learner=>learner))
+    _learner=SKLearner(learner)
     fit!(_learner,in,out)
     @test _learner.model != Dict()
     return _learner
@@ -72,7 +79,8 @@ end
 @testset "scikit classifiers" begin
     Random.seed!(123)
     for cl in classifiers
-	fit_test(cl,XC,YC)
+		println(cl)
+		fit_test(cl,XC,YC)
     end
 end
 

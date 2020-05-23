@@ -47,10 +47,10 @@ function crossvalidate(pl::Machine,X::DataFrame,Y::Vector,
       push!(pacc,res)
       fold += 1
       if verbose == true
-	println("fold: ",fold,", ",res)
+		  println("fold: ",fold,", ",res)
       end
     catch e
-      #println(e)
+      println(e)
       error += 1
     end
   end

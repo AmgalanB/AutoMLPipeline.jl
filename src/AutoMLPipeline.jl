@@ -51,6 +51,10 @@ include("naremover.jl")
 using .NARemovers
 export NARemover
 
+include("gradientboostingclassifier.jl")
+using .GradientBoostingClassifiers
+export XGBC
+
 include("pipelines.jl")
 using .Pipelines
 export @pipeline, @pipelinex, @pipelinez
