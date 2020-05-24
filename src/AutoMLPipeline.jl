@@ -51,9 +51,9 @@ include("crossvalidator.jl")
 using .CrossValidators
 export crossvalidate
 
-#include("skcrossvalidator.jl")
-#using .SKCrossValidators
-#export crossvalidate
+include("skcrossvalidator.jl")
+using .SKCrossValidators
+export crossvalidate
 
 include("naremover.jl")
 using .NARemovers

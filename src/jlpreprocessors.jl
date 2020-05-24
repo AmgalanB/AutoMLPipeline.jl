@@ -33,7 +33,8 @@ mutable struct JLPreprocessor <: Learner
       :name => "jlprep",
 		:preprocessor => "PCA",
       :impl_args => Dict(),
-		:autocomponent => true
+		:autocomponent => true,
+		:n_components =>0
     )
     cargs = nested_dict_merge(default_args, args)
     cargs[:name] = cargs[:name]*"_"*randstring(3)
@@ -57,13 +58,17 @@ function fit!(prep::JLPreprocessor, x::DataFrame, y::Vector=[])
   impl_args = copy(prep.args[:impl_args])
   proc = jlpreproc_dict[prep.args[:preprocessor]]
   autocomp = prep.args[:autocomponent]
+  ncomponents=prep.args[:n_components]
   xn = (Matrix(x))' |> collect
-  ncomponents = min(size(xn)...)
+  if ncomponents == 0
+	 ncomponents = min(size(xn)...)
+	 impl_args[:n_components] = ncomponents
+  end
   if autocomp == true
 	 cols = ncol(x)
 	 if cols > 0
 		ncomponents = round(sqrt(cols),digits=0) |> Integer
-		push!(impl_args,:n_components => ncomponents)
+		impl_args[:n_components] = ncomponents
 	 end
   end
   preproc = nothing

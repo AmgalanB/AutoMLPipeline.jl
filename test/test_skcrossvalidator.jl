@@ -5,6 +5,7 @@ using Random
 using AutoMLPipeline
 using AutoMLPipeline.EnsembleMethods
 using AutoMLPipeline.SKPreprocessors
+using AutoMLPipeline.JLPreprocessors
 using AutoMLPipeline.SKCrossValidators
 using AutoMLPipeline.DecisionTreeLearners
 using AutoMLPipeline.Pipelines
@@ -34,7 +35,7 @@ function test_skcrossvalidator()
   crossv(ppl2,X,Y,10,false)
   cat = CatFeatureSelector()
   num = NumFeatureSelector()
-  pca = SKPreprocessor("PCA")
+  pca = JLPreprocessor("PCA")
   ptf = SKPreprocessor("PowerTransformer")
   rbc = SKPreprocessor("RobustScaler")
   ppl3=@pipeline ((cat + num) + (num |> ptf) + (num |> rbc) + (num |> pca)) |> VoteEnsemble()

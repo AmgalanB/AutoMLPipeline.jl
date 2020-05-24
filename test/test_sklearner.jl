@@ -17,53 +17,7 @@ const IRIS = getiris()
 const X = IRIS[:,1:3] |> DataFrame
 const XC = IRIS[:,1:4] |> DataFrame
 const YC = IRIS[:,5] |> Vector
-const Y = IRIS[:,4] |> Vector
-
-#const profb = getprofb()
-#const X = profb[:,[2,3,4]] |> DataFrame
-#const XC = profb[:,[2,3,4,7]] |> DataFrame
-#const YC = profb[:,1] |> Vector
-#const Y = profb[:,7] |> Vector
-
-
-
-const classifiers = [
-							"LinearSVC","QDA","MLPClassifier","BernoulliNB",
-							"RandomForestClassifier","LDA",
-							"NearestCentroid","SVC","LinearSVC","NuSVC","MLPClassifier",
-							"RidgeClassifierCV","SGDClassifier","KNeighborsClassifier",
-							"GaussianProcessClassifier","DecisionTreeClassifier",
-							"PassiveAggressiveClassifier","RidgeClassifier",
-							"ExtraTreesClassifier","GradientBoostingClassifier",
-							"BaggingClassifier","AdaBoostClassifier","GaussianNB","MultinomialNB",
-							"ComplementNB","BernoulliNB"
-						  ]
-
-const regressors = [
-						  "SVR",
-						  "Ridge",
-						  "RidgeCV",
-						  "Lasso",
-						  "ElasticNet",
-						  "Lars",
-						  "LassoLars",
-						  "OrthogonalMatchingPursuit",
-						  "BayesianRidge",
-						  "ARDRegression",
-						  "SGDRegressor",
-						  "PassiveAggressiveRegressor",
-						  "KernelRidge",
-						  "KNeighborsRegressor",
-						  "RadiusNeighborsRegressor",
-						  "GaussianProcessRegressor",
-						  "DecisionTreeRegressor",
-						  "RandomForestRegressor",
-						  "ExtraTreesRegressor",
-						  "GradientBoostingRegressor",
-						  "MLPRegressor",
-						  "AdaBoostRegressor"
-						 ]
-
+const YN = IRIS[:,4] |> Vector
 
 function fit_test(learner::String,in::DataFrame,out::Vector)
   _learner=SKLearner(learner)
@@ -76,19 +30,50 @@ function fit_transform_reg(model::Learner,in::DataFrame,out::Vector)
   @test sum((transform!(model,in) .- out).^2)/length(out) < 2.0
 end
 
+
+const cclassifiers = [
+		"LinearSVC","QDA","MLPClassifier","BernoulliNB",
+		"RandomForestClassifier",		
+		"NearestCentroid","SVC","LinearSVC","NuSVC","MLPClassifier",
+		"SGDClassifier","KNeighborsClassifier",
+		"DecisionTreeClassifier",
+		"PassiveAggressiveClassifier","RidgeClassifier",
+		"ExtraTreesClassifier","GradientBoostingClassifier",
+		"BaggingClassifier","AdaBoostClassifier","GaussianNB","MultinomialNB",
+		"ComplementNB","BernoulliNB"
+		#"RidgeClassifierCV",
+		#"GaussianProcessClassifier",
+		#"LDA",
+	  ]
 @testset "scikit classifiers" begin
   Random.seed!(123)
-  for cl in classifiers
+  for cl in cclassifiers
 	 #println(cl)
 	 fit_test(cl,XC,YC)
   end
 end
 
+const cregressors = [
+	  "SVR", "Ridge", "Lasso", "ElasticNet", "Lars", "LassoLars",
+	  "OrthogonalMatchingPursuit",
+	  "SGDRegressor", "PassiveAggressiveRegressor",
+	  "KNeighborsRegressor", "RadiusNeighborsRegressor",
+	  "DecisionTreeRegressor", "RandomForestRegressor", 
+	  "ExtraTreesRegressor", "GradientBoostingRegressor",
+	  "AdaBoostRegressor"
+	  #"GaussianProcessRegressor",
+	  #"KernelRidge",
+	  #"BayesianRidge",
+	  #"ARDRegression",
+	  #"RidgeCV",
+	  #"MLPRegressor",
+	 ]
 @testset "scikit regressors" begin
   Random.seed!(123)
-  for rg in regressors
-	 model=fit_test(rg,X,Y)
-	 fit_transform_reg(model,X,Y)
+  for rg in cregressors
+	 #println(rg)
+	 model=fit_test(rg,X,YN)
+	 fit_transform_reg(model,X,YN)
   end
 end
 

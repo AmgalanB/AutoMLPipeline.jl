@@ -87,7 +87,7 @@ function diabetes_test()
 
     disc = CatNumDiscriminator(50)
     pl = @pipeline disc |> ((numf |> rbs |>  pca) + (catf)) |> jrf
-    @test crossvalidate(pl,X,Y,acc,10,true).mean > 50.0
+    @test crossvalidate(pl,X,Y,acc,10,false).mean > 50.0
 
     disc = CatNumDiscriminator(100)
     pl = @pipeline disc |> ((numf |> rbs |>  ica) + (catf |> ohe)) |> rf
