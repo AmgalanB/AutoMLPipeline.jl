@@ -7,10 +7,7 @@ using DataFrames
 using AutoMLPipeline
 using AutoMLPipeline.Pipelines
 using AutoMLPipeline.BaseFilters
-using AutoMLPipeline.SKPreprocessors
-using AutoMLPipeline.DecisionTreeLearners
 using AutoMLPipeline.Utils
-using AutoMLPipeline.FeatureSelectors
 
 function test_baseline()
     Random.seed!(123)

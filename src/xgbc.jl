@@ -1,4 +1,4 @@
-module GradientBoostingClassifiers
+module XGBoostLearners
 
 import XGBoost
 import MLBase
@@ -60,7 +60,7 @@ function transform!(xgb::Xgbc, adf::DataFrame)
   pred = XGBoost.predict(boostm,df32) .|> Int
   label_map = xgb.model[:label_map]
   res=MLBase.labeldecode(label_map,pred .+ 1) 
-  return res
+  return res 
 end
 
 end

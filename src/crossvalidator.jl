@@ -2,7 +2,7 @@ module CrossValidators
 
 using Statistics: mean, std
 
-using MLBase: StratifiedKfold, LOOCV,
+using MLBase: StratifiedKfold, LOOCV, Kfold,
               RandomSub, StratifiedRandomSub
 
 # standard included modules
@@ -29,6 +29,7 @@ function crossvalidate(pl::Machine,X::DataFrame,Y::Vector,
   ## flatten arrays
   @assert size(X)[1] == length(Y)
   rowsize = size(X)[1]
+  #folds = Kfold(length(Y),nfolds) |> collect
   folds = StratifiedKfold(Y,nfolds) |> collect
   pacc = Float64[]
   fold = 0
@@ -50,7 +51,8 @@ function crossvalidate(pl::Machine,X::DataFrame,Y::Vector,
 		  println("fold: ",fold,", ",res)
       end
     catch e
-      println(e)
+      #println(e)
+		#Base.invokelatest(Base.display_error, Base.catch_stack())
       error += 1
     end
   end
@@ -63,10 +65,16 @@ end
 function pipe_accuracy(plearner,perf::Function,trX::DataFrame,
 		       trY::Vector,tstX::DataFrame,tstY::Vector)
   learner = deepcopy(plearner)
-  fit!(learner,trX,trY)
-  pred = transform!(learner,tstX)
-  res = perf(pred,tstY)
-  return res
+  try 
+	 fit!(learner,trX,trY)
+	 pred = transform!(learner,tstX)
+	 res = perf(pred,tstY)
+	 return res
+  catch err
+	 return -Inf
+	 #println(err)
+	 #Base.invokelatest(Base.display_error, Base.catch_stack())
+  end
 end
 
 

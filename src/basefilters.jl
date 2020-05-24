@@ -71,6 +71,9 @@ function fit!(ohe::OneHotEncoder, instances::DataFrame, labels::Vector=[])
 end
 
 function transform!(ohe::OneHotEncoder, pinstances::DataFrame)
+  if isempty(pinstances)
+	 return DataFrame()
+  end
   instances = deepcopy(pinstances)
   nominal_columns = ohe.model[:nominal_columns]
   nominal_column_values_map = ohe.model[:nominal_column_values_map]
@@ -107,7 +110,8 @@ function transform!(ohe::OneHotEncoder, pinstances::DataFrame)
     end
   end
 
-  return transformed_instances |> DataFrame
+  res = transformed_instances |> DataFrame
+  return res
 end
 
 

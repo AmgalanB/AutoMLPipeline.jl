@@ -19,6 +19,14 @@ include("basefilters.jl")
 using .BaseFilters
 export OneHotEncoder, Imputer
 
+include("jlpreprocessors.jl")
+using .JLPreprocessors
+export JLPreprocessor
+
+include("xgbc.jl")
+using .XGBoostLearners
+export Xgbc
+
 include("featureselector.jl")
 using .FeatureSelectors
 export FeatureSelector, CatFeatureSelector, NumFeatureSelector, CatNumDiscriminator
@@ -43,17 +51,13 @@ include("crossvalidator.jl")
 using .CrossValidators
 export crossvalidate
 
-include("skcrossvalidator.jl")
-using .SKCrossValidators
-export crossvalidate
+#include("skcrossvalidator.jl")
+#using .SKCrossValidators
+#export crossvalidate
 
 include("naremover.jl")
 using .NARemovers
 export NARemover
-
-include("gradientboostingclassifier.jl")
-using .GradientBoostingClassifiers
-export XGBC
 
 include("pipelines.jl")
 using .Pipelines

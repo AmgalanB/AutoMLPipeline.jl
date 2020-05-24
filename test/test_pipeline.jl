@@ -6,27 +6,29 @@ using AutoMLPipeline
 using AutoMLPipeline.Pipelines
 using AutoMLPipeline.BaseFilters
 using AutoMLPipeline.SKPreprocessors
+using AutoMLPipeline.JLPreprocessors
 using AutoMLPipeline.DecisionTreeLearners
 using AutoMLPipeline.Utils
 using AutoMLPipeline.FeatureSelectors
 
-global const data = getiris()
-global const features = data[:,1:4]
-global const X=data[:,1:5]
+const data = getiris()
+const features = data[:,1:4]
+const X=data[:,1:5]
 const Y=data[:,5] |> Vector
 X[!,5]= X[!,5] .|> string
 
+acc(X,Y)=score(:accuracy,X,Y)
 
-global const ohe = OneHotEncoder()
-global const pca = SKPreprocessor("PCA")
-global const ica = SKPreprocessor("FastICA")
-global const fa = SKPreprocessor("FactorAnalysis")
-global const disc = CatNumDiscriminator()
-global const catf = CatFeatureSelector()
-global const numf = NumFeatureSelector()
-global const rf = RandomForest()
-global const ada = Adaboost()
-global const pt = PrunedTree()
+const ohe  = OneHotEncoder()
+const pca  = JLPreprocessor("PCA")
+const ica  = JLPreprocessor("ICA")
+const fa   = JLPreprocessor("FA")
+const disc = CatNumDiscriminator()
+const catf = CatFeatureSelector()
+const numf = NumFeatureSelector()
+const rf   = RandomForest()
+const ada  = Adaboost()
+const pt   = PrunedTree()
 
 function test_pipeline()
   # test initialization of types
@@ -59,15 +61,15 @@ end
 
 function test_sympipeline()
   pcombo5 = @pipeline :((numf |> pca) + (numf |> ica) |> (ada * rf * pt))
-  @test crossvalidate(pcombo5,X,Y,"accuracy_score",10,false).mean >= 0.90
+  @test crossvalidate(pcombo5,X,Y,acc,10,false).mean >= 0.90
   expr = :((numf |> pca) + (numf |> ica) |> (ada * rf * pt))
   processexpr!(expr.args)
-  @test crossvalidate(eval(expr),X,Y,"accuracy_score",10,false).mean >= 0.90
+  @test crossvalidate(eval(expr),X,Y,acc,10,false).mean >= 0.90
   expr = :((numf |> pca) + (numf |> ica) |> (ada * rf * pt))
   pcombo6 = sympipeline(expr) |> eval
-  @test crossvalidate(pcombo6,X,Y,"accuracy_score",10,false).mean >= 0.90
+  @test crossvalidate(pcombo6,X,Y,acc,10,false).mean >= 0.90
   pcombo7 = (@pipelinez expr) |> eval
-  @test crossvalidate(pcombo7,X,Y,"accuracy_score",10,false).mean >= 0.90
+  @test crossvalidate(pcombo7,X,Y,acc,10,false).mean >= 0.90
 end
 @testset "Symbolic Pipeline: Global Scope" begin
   Random.seed!(123)
@@ -77,9 +79,6 @@ end
 
 function test_pipeline()
   ohe = OneHotEncoder()
-  pca = SKPreprocessor("PCA")
-  ica = SKPreprocessor("FastICA")
-  fa = SKPreprocessor("FactorAnalysis")
   disc = CatNumDiscriminator()
   catf = CatFeatureSelector()
   numf = NumFeatureSelector()
@@ -88,13 +87,13 @@ function test_pipeline()
   pt = PrunedTree()
   # test symbolic pipeline expression 
   pcombo2 = @pipeline (pca |> ica) + ica + pca
-  @test fit_transform!(pcombo2,features) |> Matrix |> size |> collect |> sum == 162
+  @test fit_transform!(pcombo2,features) |> Matrix |> size |> collect |> sum == 155
   pcombo2 = @pipeline pca |> ica |> fa
-  @test fit_transform!(pcombo2,features) |> Matrix |> size |> collect |> sum == 154
+  @test fit_transform!(pcombo2,features) |> Matrix |> size |> collect |> sum == 151
   pcombo3 = @pipeline disc |> ((catf + numf) + (numf |> pca) + (numf |> ica) + (catf|>ohe)) |> rf
   (fit_transform!(pcombo3,X,Y)  .== Y) |> sum == 150
   pcombo4 = @pipeline (numf |> pca) + (numf |> ica) |> (ada * rf * pt)
-  @test crossvalidate(pcombo4,X,Y,"accuracy_score",10,false).mean >= 0.90
+  @test crossvalidate(pcombo4,X,Y,acc,10,false).mean >= 0.90
 end
 @testset "Symbolic Pipeline: Local Scope" begin
   Random.seed!(123)

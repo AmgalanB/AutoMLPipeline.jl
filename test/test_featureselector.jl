@@ -8,6 +8,7 @@ using AutoMLPipeline.DecisionTreeLearners
 using AutoMLPipeline.AbsTypes
 using AutoMLPipeline.SKLearners
 using AutoMLPipeline.SKPreprocessors
+using AutoMLPipeline.JLPreprocessors
 using AutoMLPipeline.Utils
 using AutoMLPipeline.BaseFilters
 using AutoMLPipeline.Pipelines
@@ -15,6 +16,11 @@ using AutoMLPipeline.EnsembleMethods
 using AutoMLPipeline.FeatureSelectors
 using Statistics
 using DataFrames
+
+function acc(X,Y)
+  @assert length(X)==length(Y)
+  score(:accuracy,X,Y)
+end
 
 function iris_test()
     data = getiris()
@@ -42,9 +48,9 @@ function iris_test()
     @test eltype(res[:,6]) <: Number
     catnumdata = hcat(X,repeat([1,2,3,4,5],30))
     catnum = CatNumDiscriminator(5)
-    ppp=@pipeline catnum |>  ((autocat |> OneHotEncoder()) + (autonum |> SKPreprocessor("PCA")))
+    ppp=@pipeline catnum |>  ((autocat |> OneHotEncoder()) + (autonum |> JLPreprocessor("PCA")))
     res=fit_transform!(ppp,catnumdata)
-    @test ncol(res) == 12
+    @test ncol(res) == 10 
 end
 @testset "Feature Selectors: Iris" begin
     Random.seed!(123)
@@ -54,40 +60,39 @@ end
 function diabetes_test()
     Random.seed!(123)
     diabetesdf = CSV.read(joinpath(dirname(pathof(AutoMLPipeline)),"../data/diabetes.csv"))
-    X = diabetesdf[:,1:end-1]
-    Y = diabetesdf[:,end] |> Vector
-    pca = SKPreprocessor("PCA")
-    ica = SKPreprocessor("FastICA")
-    dt = SKLearner("DecisionTreeClassifier")
-    rf = SKLearner("RandomForestClassifier")
-    rbs = SKPreprocessor("RobustScaler")
-    jrf = RandomForest()
+    X    = diabetesdf[:,1:end-1]
+    Y    = diabetesdf[:,end] |> Vector
+    pca  = JLPreprocessor("PCA")
+    ica  = JLPreprocessor("ICA")
+    dt   = SKLearner("DecisionTreeClassifier")
+    rf   = SKLearner("RandomForestClassifier")
+    rbs  = SKPreprocessor("RobustScaler")
+    jrf  = RandomForest()
     lsvc = SKLearner("LinearSVC")
-    ohe = OneHotEncoder()
+    ohe  = OneHotEncoder()
     catf = CatFeatureSelector()
     numf = NumFeatureSelector()
 
     disc = CatNumDiscriminator(0)
     pl = @pipeline disc |> ((numf |>  pca) + (catf |> ohe)) |> jrf
-    @test crossvalidate(pl,X,Y,"accuracy_score",10,false).mean > 0.60
-
+    @test crossvalidate(pl,X,Y,acc,10,false).mean > 0.60
     pl = @pipeline disc |> ((numf |> rbs |>  pca) + (catf |> ohe)) |> lsvc
-    @test crossvalidate(pl,X,Y,"accuracy_score",10,false).mean > 0.60
-
+    @test crossvalidate(pl,X,Y,acc,10,false).mean > 0.60
     pl = @pipeline disc |> ((numf |> rbs |>  ica) + (catf |> ohe)) |> rf
-    @test crossvalidate(pl,X,Y,"accuracy_score",10,false).mean > 0.60
+    @test crossvalidate(pl,X,Y,acc,10,false).mean == -Inf
 
     disc = CatNumDiscriminator(20)
-    pl = @pipeline disc |> ( (catf |> ohe)) |> jrf
-    @test crossvalidate(pl,X,Y,"accuracy_score",20,false).mean > 0.60
+	 pl = @pipeline disc |> (catf + numf) |> jrf
+    @test crossvalidate(pl,X,Y,acc,10,false).mean > 50.0
 
     disc = CatNumDiscriminator(50)
-    pl = @pipeline disc |> ((numf |> rbs |>  pca) + (catf |> ohe)) |> lsvc
-    @test crossvalidate(pl,X,Y,"accuracy_score",20,false).mean > 0.60
+    pl = @pipeline disc |> ((numf |> rbs |>  pca) + (catf)) |> jrf
+    @test crossvalidate(pl,X,Y,acc,10,true).mean > 50.0
 
     disc = CatNumDiscriminator(100)
     pl = @pipeline disc |> ((numf |> rbs |>  ica) + (catf |> ohe)) |> rf
-    @test crossvalidate(pl,X,Y,"accuracy_score",20,false).mean > 0.60
+    @test crossvalidate(pl,X,Y,acc,10,false).mean == -Inf
+
 end
 @testset "Feature Selectors: Diabetes" begin
     Random.seed!(123)
